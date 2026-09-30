@@ -75,7 +75,26 @@ public class MainActivity extends Activity {
 
                 try {
                     if (fileChooserParams.isCaptureEnabled()) {
+                        ContentValues values = new ContentValues();
+                        values.put(
+                                MediaStore.Images.Media.DISPLAY_NAME,
+                                "vida_bela_" + System.currentTimeMillis() + ".jpg"
+                        );
+                        values.put(
+                                MediaStore.Images.Media.MIME_TYPE,
+                                "image/jpeg"
+                        );
+
+                        cameraImageUri = getContentResolver().insert(
+                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                values
+                        );
+
                         intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        intent.putExtra(
+                                MediaStore.EXTRA_OUTPUT,
+                                cameraImageUri
+                        );
                     } else {
                         intent = fileChooserParams.createIntent();
                     }
@@ -104,13 +123,28 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            Uri[] results = WebChromeClient.FileChooserParams.parseResult(
-                    resultCode,
-                    data
-            );
+            Uri[] results = null;
+
+            if (resultCode == RESULT_OK) {
+                if (data != null && data.getData() != null) {
+                    results = new Uri[]{data.getData()};
+                } else if (cameraImageUri != null) {
+                    results = new Uri[]{cameraImageUri};
+                }
+            } else if (cameraImageUri != null) {
+                try {
+                    getContentResolver().delete(
+                            cameraImageUri,
+                            null,
+                            null
+                    );
+                } catch (Exception ignored) {
+                }
+            }
 
             filePathCallback.onReceiveValue(results);
             filePathCallback = null;
+            cameraImageUri = null;
         }
     }
 
