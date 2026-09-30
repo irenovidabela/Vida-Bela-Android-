@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.webkit.GeolocationPermissions;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -71,16 +72,17 @@ public class MainActivity extends Activity {
                 filePathCallback = filePathCallbackParam;
 
                 Intent intent;
-                try {
-                    intent = fileChooserParams.createIntent();
-                } catch (Exception e) {
-                    filePathCallback = null;
-                    return false;
-                }
 
                 try {
+                    if (fileChooserParams.isCaptureEnabled()) {
+                        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    } else {
+                        intent = fileChooserParams.createIntent();
+                    }
+
                     startActivityForResult(intent, FILE_CHOOSER_REQUEST);
                     return true;
+
                 } catch (Exception e) {
                     filePathCallback = null;
                     return false;
